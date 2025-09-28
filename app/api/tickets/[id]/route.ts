@@ -1,5 +1,4 @@
-// app/api/tickets/[id]/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
@@ -10,11 +9,13 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// GET /api/tickets/[id]
+
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
+
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -25,6 +26,7 @@ export async function GET(
       session.user.email,
       session.user.name ?? undefined
     );
+
     if (!userId) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -38,13 +40,11 @@ export async function GET(
         staff:staff_id ( id, name, email, department )
       `
       )
-      .eq("id", params.id)
-      .eq("user_id", userId) // ✅ ensure ownership
+      .eq("id", id)
+      .eq("user_id", userId)
       .maybeSingle();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (!data) {
       return NextResponse.json(
         { error: "Ticket not found or not yours" },
@@ -55,18 +55,17 @@ export async function GET(
     return NextResponse.json({ ticket: data });
   } catch (err: any) {
     console.error("[tickets GET by id]", err);
-    return NextResponse.json(
-      { error: err.message || "Failed to load ticket" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 // DELETE /api/tickets/[id]
 export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
+
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -81,23 +80,17 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Delete only if ticket belongs to user
     const { error } = await supabaseAdmin
       .from("ticket")
       .delete()
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("user_id", userId);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("[tickets DELETE]", err);
-    return NextResponse.json(
-      { error: err.message || "Failed to delete ticket" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
