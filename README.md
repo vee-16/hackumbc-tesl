@@ -1,36 +1,175 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CivicLab Tech
 
-## Getting Started
+A **centralized, AI-powered and human support IT helpdesk platform** that enables a multitude of customers to submit support tickets and staff to manage them with intelligent classification and auto-assignment.
 
-First, run the development server:
+## Features
+
+### Customer Portal
+- Secure Google login via NextAuth
+- Submit support tickets with rich details
+- View, track, and delete your own tickets
+
+### Staff Portal
+- Staff login (credentials or session)
+- View assigned and unassigned tickets
+- Claim tickets and update status (`to_do`, `in_progress`, `completed`)
+
+### AI-Powered Classification
+- Python microservice (Flask) using **Google Gemini** (with fallback heuristics)
+- Predicts **priority** (`low`, `medium`, `high`) and **department** (`account`, `network`, `hardware`, `software`, `other`)
+- Provides time estimates per ticket
+
+### Auto Assignment
+- Tickets are assigned to staff in the same department with the **least current workload**
+
+### Database
+- Supabase PostgreSQL with real-time updates
+- Tables: `app_user`, `staff`, `ticket`
+
+### Deployment
+- Next.js app → Vercel
+- Python classifier → Render (Flask API)
+
+## Setup
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/<your-org>/civiclab.git
+cd civiclab
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Environment Variables
+
+Create `.env.local` for the **Next.js app**:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+NEXTAUTH_SECRET=...
+CLASSIFIER_URL=https://<your-classifier-service>.onrender.com
+CLASSIFIER_KEY=prod-secret
+```
+
+Create `.env` for the **Python classifier**:
+
+```env
+GEMINI_API_KEY=your_google_genai_key
+CLASSIFIER_KEY=prod-secret
+```
+
+## Running Locally
+
+Start both services together:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Defined in `package.json`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```json
+{
+  "scripts": {
+    "build": "next build --turbopack",
+    "start": "next start",
+    "py:dev": "cd python && python app.py",
+    "dev": "concurrently -n PY,WEB -c yellow,cyan \"npm:py:dev\" \"next dev\""
+  }
+}
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Classifier Options
 
-## Learn More
+### 1. Vanilla Classifier (production-ready)
+**Repo:** [vanilla-nlp-classifier](https://github.com/vee-16/nlp-classifier)
 
-To learn more about Next.js, take a look at the following resources:
+- Lightweight Flask service with fallback heuristics
+- Ideal for deploying on **Render** as `Web Service`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. Full-Fledged Classifier (development branch)
+**Repo branch:** [advanced-classifier](https://github.com/vee-16/hackumbc-tesl/commit/7ea7450d264865d28320c0967b7e536f5403fed7)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+#### Transformer Models
+Both scripts include setup for fine-tuning DistilBERT models. To enable:
+1. Uncomment the training sections in the scripts
+2. Ensure you have sufficient computational resources (GPU recommended)
 
-## Deploy on Vercel
+#### API Deployment
+`Filter.py` includes commented FastAPI code for serving models as a web API. To enable:
+1. Uncomment the FastAPI section
+2. Install FastAPI: `pip install fastapi uvicorn`
+3. Run: `uvicorn Filter:app --reload --port 8000`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Frontend / Next.js → Vercel
+Deploy the main application to Vercel with automatic builds from your repository.
+
+### Python Classifier → Render
+Deploy `python/` folder as a **Web Service**
+
+**Configuration:**
+- Start command: `python app.py`
+- Expose port `8001`
+- Ensure `CLASSIFIER_KEY` and `GEMINI_API_KEY` are set in environment variables
+
+## API Endpoints
+
+### Next.js (Vercel)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/tickets` | Create ticket (auto-classified + assigned) |
+| `GET` | `/api/tickets` | List tickets (customer-only) |
+| `GET` | `/api/staff/tickets` | List tickets assigned to staff |
+| `GET` | `/api/staff/unassigned` | List unclaimed tickets |
+
+### Python Classifier (Render)
+
+#### Health Check
+```http
+GET /health
+```
+Returns service status
+
+#### Classify Ticket
+```http
+POST /classify
+```
+
+**Request Body:**
+```json
+{
+  "title": "My computer won't boot",
+  "message": "No lights or sounds, power button not working"
+}
+```
+
+**Response:**
+```json
+{
+  "priority": "high",
+  "department": "hardware",
+  "estimated_minutes": 180
+}
+```
+
+## Team Contributions
+
+- **Bookashee Diba**
+- **Soham Harkare**
+- **Kenean**
+- **Vaishnavi Sinha**
+
+## Support
+
+For questions or issues, please contact the development team or create an issue in the repository.
