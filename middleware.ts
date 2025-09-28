@@ -1,5 +1,8 @@
 export { default } from "next-auth/middleware";
-export const config = {
-  matcher: ["/portal/:path*"], // all customer portal routes
-};
 
+export const config = {
+  matcher: [
+    "/portal/:path*",
+    "/staff/:path*",
+  ],
+};

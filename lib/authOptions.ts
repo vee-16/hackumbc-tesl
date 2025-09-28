@@ -12,6 +12,10 @@ export const authOptions: NextAuthOptions = {
   ],
   session: { strategy: "jwt" },
 
+  pages: {
+    signIn: "/login",
+  },
+
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
@@ -33,7 +37,6 @@ export const authOptions: NextAuthOptions = {
 
   events: {
     async signIn({ user }) {
-      // user = { name?: string | null; email?: string | null; image?: string | null; ... }
       if (!user?.email) return;
 
       const { error } = await supabaseAdmin
@@ -48,4 +51,4 @@ export const authOptions: NextAuthOptions = {
       }
     },
   },
-} satisfies NextAuthOptions;;
+} satisfies NextAuthOptions;
