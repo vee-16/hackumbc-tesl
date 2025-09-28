@@ -38,7 +38,7 @@ export default function StaffLoginPage() {
         {err && <p className="text-sm text-red-600">{err}</p>}
         <Input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
         <Input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500">Sign in</Button>
+        <Button type="submit" className="w-full bg-indigo-600 text-white hover:bg-indigo-500">Sign in</Button>
       </form>
     </main>
   );

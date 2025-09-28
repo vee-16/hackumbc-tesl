@@ -140,9 +140,9 @@ export default function AssistantPage() {
               <Send className="mr-1 h-4 w-4" />
               Send
             </Button>
-            <Link href="/portal/submit-ticket" className="text-sm text-indigo-700 hover:underline">
-              Submit Ticket
-            </Link>
+            {/*<Link href="/portal/submit-ticket" className="text-sm text-indigo-700 hover:underline">*/}
+            {/*  Submit Ticket*/}
+            {/*</Link>*/}
           </div>
 
           <p className="px-4 pb-4 text-xs text-slate-500">

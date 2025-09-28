@@ -1,23 +1,92 @@
-import { NextResponse, type NextRequest } from "next/server";
+// app/api/tickets/[id]/route.ts
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
+import { getOrCreateAppUser } from "@/lib/dbUsers";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function DELETE(
-  _req: NextRequest,
-  context: { params: Promise<{ id: string }> } // 👈 must be Promise
+// GET /api/tickets/[id]
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params; // 👈 await it
-
-    if (!id) {
-      return NextResponse.json({ error: "Missing ticket id" }, { status: 400 });
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { error } = await supabaseAdmin.from("ticket").delete().eq("id", id);
+    const userId = await getOrCreateAppUser(
+      session.user.email,
+      session.user.name ?? undefined
+    );
+    if (!userId) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("ticket")
+      .select(
+        `
+        id, title, message, status, priority, department, 
+        time_estimate_minutes, attachment, created_at, updated_at,
+        staff:staff_id ( id, name, email, department )
+      `
+      )
+      .eq("id", params.id)
+      .eq("user_id", userId) // ✅ ensure ownership
+      .maybeSingle();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    if (!data) {
+      return NextResponse.json(
+        { error: "Ticket not found or not yours" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ ticket: data });
+  } catch (err: any) {
+    console.error("[tickets GET by id]", err);
+    return NextResponse.json(
+      { error: err.message || "Failed to load ticket" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/tickets/[id]
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = await getOrCreateAppUser(
+      session.user.email,
+      session.user.name ?? undefined
+    );
+    if (!userId) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Delete only if ticket belongs to user
+    const { error } = await supabaseAdmin
+      .from("ticket")
+      .delete()
+      .eq("id", params.id)
+      .eq("user_id", userId);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

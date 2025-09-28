@@ -82,7 +82,7 @@ export default function TicketsPage() {
               <MessageSquare className="h-8 w-8 text-slate-400" />
               <div>No tickets found</div>
               <Link href="/portal/submit-ticket">
-                <Button className="bg-indigo-600 hover:bg-indigo-500">
+                <Button className="bg-indigo-600 text-white hover:bg-indigo-500">
                   Submit Your First Ticket
                 </Button>
               </Link>
