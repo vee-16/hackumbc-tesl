@@ -1,0 +1,26 @@
+# Flask web framework
+Flask>=2.3.0
+Flask-CORS>=4.0.0
+
+# Core data science libraries (lightweight versions for deployment)
+pandas>=1.5.0
+numpy>=1.21.0
+scikit-learn>=1.1.0
+joblib>=1.2.0
+
+# Supabase integration
+supabase>=1.0.0
+
+# Google Gemini AI
+google-generativeai>=0.3.0
+
+# Additional utilities
+requests>=2.28.0
+
+# Optional: For local development and training
+# Uncomment these if you need to train models locally
+# transformers>=4.20.0
+# torch>=1.12.0
+# datasets>=2.0.0
+# evaluate>=0.4.0
+# kagglehub>=0.2.0
