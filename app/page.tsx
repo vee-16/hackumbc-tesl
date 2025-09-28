@@ -10,8 +10,8 @@ export default function Home() {
             <Image
               src="/logo.jpeg"
               alt="CivicLab Logo"
-              width={36}
-              height={36}
+              width={52}
+              height={52}
               className="rounded-md"
             />
             <span className="sr-only">CivicLab</span>
