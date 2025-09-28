@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 
 export default function StaffLayout({ children }: { children: ReactNode }) {
   return (

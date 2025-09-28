@@ -1,16 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseServer";
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> }  // 👈 must be Promise
 ) {
-  const { id } = params;
+  const { id } = await context.params;  // 👈 await it
 
   const { data, error } = await supabaseAdmin
     .from("ticket")
-    .select(
-      `
+    .select(`
       id,
       title,
       message,
@@ -24,8 +23,7 @@ export async function GET(
         name,
         email
       )
-      `
-    )
+    `)
     .eq("id", id)
     .is("staff_id", null)
     .maybeSingle();

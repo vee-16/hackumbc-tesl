@@ -27,7 +27,7 @@ function statusBadgeClasses(status: Status) {
   return "border-slate-200 text-slate-700 bg-slate-50";
 }
 
-export default function UnassignedTicketsPage(): JSX.Element {
+export default function UnassignedTicketsPage() {
   const router = useRouter();
   const [staff, setStaff] = useState<{ id: string; name: string; department: string } | null>(null);
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
@@ -149,7 +149,6 @@ export default function UnassignedTicketsPage(): JSX.Element {
                   >
                     Preview
                   </Button>
-
                 </div>
               </CardContent>
             </Card>

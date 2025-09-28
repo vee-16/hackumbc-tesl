@@ -28,7 +28,7 @@ export function DeleteTicket({ id }: { id: string }) {
           Delete
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent className={"bg-white"}>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete this ticket?</AlertDialogTitle>
         </AlertDialogHeader>

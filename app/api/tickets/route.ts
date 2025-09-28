@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { classifyTicket } from "@/lib/classifier"; // your Gemini/ML classifier
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
+import { getOrCreateAppUser } from "@/lib/dbUsers";
+import { classifyTicket } from "@/lib/classifier";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // service role required for writes
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function GET() {
@@ -21,17 +24,44 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { title, message, user_id } = body;
+    const session = await getServerSession(authOptions);
 
-    if (!title || !message || !user_id) {
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { title, message } = (await req.json().catch(() => ({}))) as {
+      title?: string;
+      message?: string;
+    };
+
+    if (!title || !message) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
+    const userId = await getOrCreateAppUser(
+      session.user.email,
+      session.user.name ?? undefined
+    );
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User could not be resolved" },
+        { status: 500 }
+      );
+    }
+
     const classified = await classifyTicket(title, message);
+
+    if (!classified) {
+      return NextResponse.json(
+        { error: "Classification failed" },
+        { status: 500 }
+      );
+    }
 
     const { data: staffList, error: staffErr } = await supabaseAdmin
       .from("staff")
@@ -64,24 +94,23 @@ export async function POST(req: Request) {
           title,
           message,
           status: "in_progress",
-          user_id,
+          user_id: userId,
           priority: classified.priority,
           department: classified.department,
-          time_estimate_minutes: classified.time_estimate_minutes,
+          time_estimate_minutes: classified.estimated_minutes,
           staff_id: staffId,
         },
       ])
       .select("*")
       .single();
 
+
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     if (staffId) {
-      await supabaseAdmin.rpc("increment_ticket_count", {
-        staff_id: staffId,
-      });
+      await supabaseAdmin.rpc("increment_ticket_count", { staff_id: staffId });
     }
 
     return NextResponse.json({ ticket: data });

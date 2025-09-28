@@ -1,49 +1,29 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
-import { supabaseAdmin } from "@/lib/supabaseServer";
-import { getOrCreateAppUser } from "@/lib/dbUsers";
+import { createClient } from "@supabase/supabase-js";
 
-export async function POST(req: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    const email = session?.user?.email;
-    if (!email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-    // Ensure user exists in app_user
-    const userId = await getOrCreateAppUser(
-      email,
-      session.user?.name ?? undefined
-    );
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const staffId = searchParams.get("staff_id");
 
-    const body = await req.json();
-    const { title, message } = body;
-
-    if (!title || !message) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    // Insert ticket, linked to the authenticated user
-    const { data, error } = await supabaseAdmin
-      .from("ticket")
-      .insert({
-        title,
-        message,
-        user_id: userId,
-        status: "to_do",
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return NextResponse.json({ ticket: data });
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message ?? "Server error" },
-      { status: 500 }
-    );
+  if (!staffId) {
+    return NextResponse.json({ error: "Missing staff_id" }, { status: 400 });
   }
+
+  const { data, error } = await supabaseAdmin
+    .from("ticket")
+    .select("id, title, message, status, created_at")
+    .eq("staff_id", staffId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[staff/tickets GET]", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ tickets: data || [] });
 }
