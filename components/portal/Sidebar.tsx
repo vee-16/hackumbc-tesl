@@ -7,6 +7,9 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, TicketCheck } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import React from "react";
+import Image from "next/image";
+
 
 const items = [
   { href: "/portal/submit-ticket", label: "Submit Ticket", icon: MessageSquare },
@@ -27,9 +30,17 @@ export default function Sidebar() {
   return (
     <aside className="flex h-full w-64 flex-col border-r border-slate-200 bg-white rounded-xl">
       <div className="flex items-center gap-2 px-4 py-4">
-        <div className="grid h-9 w-9 place-items-center rounded-lg bg-indigo-600 text-white">🛡️</div>
+        <div className="grid relative h-9 w-9 place-items-center  text-white">
+          <Image
+            src="/logo.jpeg"
+            alt="App logo"
+            width={32}
+            height={32}
+            className="rounded"
+          />
+        </div>
         <div>
-          <div className="text-sm font-semibold">IT Support</div>
+        <div className="text-sm font-semibold">IT Support</div>
           <div className="text-xs text-slate-500">Customer Portal</div>
         </div>
       </div>
