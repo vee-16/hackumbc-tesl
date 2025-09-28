@@ -1,6 +1,3 @@
-import * as tailwind from "./middleware";
-
-tailwind.config.js  (CJS)
 module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -8,14 +5,8 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  theme: { extend: {} },
-  plugins: [require("@tailwindcss/typography")],
-
-};
-
-
-export default {
   theme: {
     extend: {},
   },
+  plugins: [require("@tailwindcss/typography")],
 };
