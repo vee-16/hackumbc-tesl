@@ -1,13 +1,21 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-white to-slate-50">
       <div className="mx-auto max-w-5xl px-6 py-24">
         <header className="flex items-center justify-between">
-          <div className="text-xl font-semibold text-emerald-700 tracking-tight">
-            CivicLab <span className="text-slate-500"></span>
-          </div>
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo.jpeg"
+              alt="CivicLab Logo"
+              width={36}
+              height={36}
+              className="rounded-md"
+            />
+            <span className="sr-only">CivicLab</span>
+          </Link>
         </header>
 
         <section className="mt-24 grid gap-8 text-center">
