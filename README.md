@@ -90,7 +90,7 @@ Defined in `package.json`:
 ## Classifier Options
 
 ### 1. Vanilla Classifier (production-ready)
-**Repo:** [vanilla-nlp-classifier](https://github.com/vee-16/nlp-classifier)
+**Repo:** [vanilla-nlp-classifier](https://github.com/vee-16/nlp-service)
 
 - Lightweight Flask service with fallback heuristics
 - Ideal for deploying on **Render** as `Web Service`
